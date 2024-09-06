@@ -41,11 +41,29 @@ _elements.stateSelectToggle.addEventListener("click", () => {
 });
 
 _elements.selectOptions.forEach(item => {
-
+    item.addEventListener("click", () => {
+        _elements.selectStateSelected.innerText = item.innerText;
+        _data.id = item.getAttribute("data-id");
+        _elements.stateSelectToggle.dispatchEvent(new Event("click"));
+    });
 });
 
-_elements.selectSearchBox.addEventListener("keyup", (e) => {
 
+
+
+_elements.selectSearchBox.addEventListener("keyup", (e) => {
+    const search = e.target.value.toLowerCase();
+
+    for (const item of _elements.selectOptions) {
+        const state = item.innerText.toLowerCase();
+
+        if (state.includes(search)) {
+            item.classList.remove("state-select-list__item--hide");
+        }
+        else {
+            item.classList.add("state-select-list__item--hide");
+        }
+    }
 });
 
 const request = (api, id) => {
