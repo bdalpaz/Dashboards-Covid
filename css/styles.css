@@ -251,6 +251,7 @@ a {
   top: calc(100% + 1.5rem);
   visibility: hidden;
   opacity: 0;
+  z-index: 2;
 }
 
 .state-select-list--show {

@@ -45,6 +45,8 @@ _elements.selectOptions.forEach(item => {
         _elements.selectStateSelected.innerText = item.innerText;
         _data.id = item.getAttribute("data-id");
         _elements.stateSelectToggle.dispatchEvent(new Event("click"));
+
+        loadData(_data.id);
     });
 });
 
@@ -66,15 +68,51 @@ _elements.selectSearchBox.addEventListener("keyup", (e) => {
     }
 });
 
-const request = (api, id) => {
+const request = async (api, id) => {
+    try {
 
+        const url = api + id;
+
+        const data = await fetch(url);
+        const json = await data.json();
+
+        return json;
+    }
+
+    catch (e) {
+        console.log(e);
+    }
 }
 
-const loadData = (id) => {
+const loadData = async (id) => {
+    _elements.loading.classList.remove("loading--hide");
 
+    _data.confirmed = await request(_api.confirmed, id);
+    _data.deaths = await request(_api.deaths, id);
+    _data.vaccinated = await request(_api.vaccinated, id);
+    _data.vaccinatedInfo = await request(_api.vaccinatedInfo, "");
+
+    updateCards();
+
+    _elements.loading.classList.add("loading--hide");
 }
 
 const createBasicChart = (element, config) => {
+    const options = {
+        chart: {
+            background: "transparent"
+        },
+
+        xaxis: {
+            type: "datetime"
+        },
+        series: []
+    }
+
+    const chart = new ApexCharts(document.querySelector(element), options);
+    chart.render();
+
+    return chart;
 
 }
 
@@ -87,10 +125,27 @@ const createStackedColumnsChart = (element) => {
 }
 
 const createCharts = () => {
+    _charts.confirmed = createBasicChart(".data-box--confirmed .data-box__body");
+    _charts.deaths = createBasicChart(".data-box--deaths .data-box__body");
+    _charts.confirmed30 = createBasicChart(".data-box--30 .data-box__body");
+    _charts.vaccinatedAbs = createBasicChart(".data-box--vaccinated-abs .data-box__body");
+
+
 
 }
 
 const updateCards = () => {
+    const uf = _ufs[_data.id];
+    _elements.confirmed.innerText = _data.confirmed[_data.confirmed.length - 1]["total_de_casos"];
+    _elements.deaths.innerText = _data.deaths[_data.deaths.length - 1]["total_de_mortes"];
+    _elements.vaccinated1.innerText = _data.vaccinatedInfo.extras[uf].info["total-hoje-dose-1"];
+    _elements.vaccinated2.innerText = _data.vaccinatedInfo.extras[uf].info["total-hoje-dose-2"] + _data.vaccinatedInfo.extras[uf].info["total-hoje-dose-unica"];
+
+
+    _elements.confirmed.innerText = Number(_elements.confirmed.innerText).toLocaleString();
+    _elements.deaths.innerText = Number(_elements.deaths.innerText).toLocaleString();
+    _elements.vaccinated1.innerText = Number(_elements.vaccinated1.innerText).toLocaleString();
+    _elements.vaccinated2.innerText = Number(_elements.vaccinated2.innerText).toLocaleString();
 
 }
 
