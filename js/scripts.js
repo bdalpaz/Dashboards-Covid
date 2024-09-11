@@ -40,13 +40,64 @@ _elements.stateSelectToggle.addEventListener("click", () => {
     _elements.selectList.classList.toggle("state-select-list--show");
 });
 
-_elements.selectOptions.forEach(item => {
-    item.addEventListener("click", () => {
-        _elements.selectStateSelected.innerText = item.innerText;
-        _data.id = item.getAttribute("data-id");
-        _elements.stateSelectToggle.dispatchEvent(new Event("click"));
 
-        loadData(_data.id);
+
+_elements.selectOptions.forEach(item => {
+
+    const _elements = {
+        selectStateSelected: document.querySelector('#selectedState'), // Atualize o seletor conforme necessário
+        selectOptions: document.querySelectorAll('.state-select-list__item'),
+        stateSelectToggle: document.querySelector('#toggleButton') // Se necessário, ajuste o seletor
+    };
+
+    // Verifique se os elementos foram encontrados
+    console.log(_elements.selectStateSelected); // Deve exibir o elemento
+    console.log(_elements.selectOptions); // Deve exibir a lista de opções
+
+    item.addEventListener("click", () => {
+        //  _elements.selectStateSelected.innerText = item.innerText;
+        //  _data.id = item.getAttribute("data-id");
+        //_elements.stateSelectToggle.dispatchEvent(new Event("click"));
+        // _elements.selectStateSelected = document.querySelector('state-select-list__item');
+
+        // loadData(_data.id);
+
+        // const _elements = {
+        //     selectStateSelected: document.querySelector('#selectedState'),
+        //     selectOptions: document.querySelectorAll('.state-select-list__item')
+        // };
+
+        // // Verifique se os elementos foram encontrados
+        // console.log(_elements.selectStateSelected); // Deve exibir o elemento
+        // console.log(_elements.selectOptions); // Deve exibir a lista de opções
+        // if (_elements.selectStateSelected) {
+        //     _elements.selectStateSelected.innerText = item.innerText;
+        // } else {
+        //     console.error("Elemento 'selectStateSelected' não encontrado.");
+        // }
+        // // Atualizar o estado selecionado
+        // const selectedId = item.getAttribute("data-id");
+        // console.log("ID selecionado:", selectedId);
+
+
+        if (_elements.selectStateSelected) {
+            _elements.selectStateSelected.innerText = item.innerText;
+        } else {
+            console.error("Elemento 'selectStateSelected' não encontrado.");
+        }
+
+        // Atualize o ID selecionado
+        const selectedId = item.getAttribute("data-id");
+        console.log("ID selecionado:", selectedId);
+
+        // Feche o menu de seleção se necessário
+        if (_elements.stateSelectToggle) {
+            _elements.stateSelectToggle.dispatchEvent(new Event("click"));
+        }
+
+        // Carregue os dados com base no ID selecionado
+        loadData(selectedId);
+
     });
 });
 
@@ -116,12 +167,70 @@ const createBasicChart = (element, config) => {
 
 }
 
-const createDonutChart = (element) => {
+const createDonutChart = (element, series, labels) => {
+    const options = {
+        chart: {
+            type: 'donut',
+            background: "transparent"
+        },
+        series: series, // Os dados que você irá passar para o gráfico
+        labels: labels, // Os rótulos (nomes dos estados ou doses)
+        legend: {
+            position: 'bottom'
+        },
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 300
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }]
+    };
 
+    const chart = new ApexCharts(document.querySelector(element), options);
+    chart.render();
+
+    return chart;
 }
 
-const createStackedColumnsChart = (element) => {
+const createStackedColumnsChart = (element, series, categories) => {
+    const options = {
+        chart: {
+            type: 'bar',
+            stacked: true,
+            background: "transparent"
+        },
+        series: series, // Dados de cada estado
+        xaxis: {
+            categories: categories // Datas ou regiões
+        },
+        fill: {
+            opacity: 1
+        },
+        legend: {
+            position: 'bottom'
+        },
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 300
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }]
+    };
 
+    const chart = new ApexCharts(document.querySelector(element), options);
+    chart.render();
+
+    return chart;
 }
 
 const createCharts = () => {
@@ -150,8 +259,13 @@ const updateCards = () => {
 }
 
 const updateCharts = () => {
+    // Exemplo de gráfico Donut para vacinação
+    createDonutChart(".data-box--vaccinated-abs .data-box__body", [_data.vaccinated1, _data.vaccinated2], ['1ª Dose', '2ª Dose + Dose Única']);
 
+    // Exemplo de gráfico de colunas empilhadas para casos confirmados
+    createStackedColumnsChart(".data-box--confirmed .data-box__body", _data.confirmed, _data.confirmedDates);
 }
+
 
 const getChartOptions = (series, labels, colors) => {
 
