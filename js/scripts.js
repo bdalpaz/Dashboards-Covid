@@ -1,3 +1,4 @@
+
 const _elements = {
     loading: document.querySelector(".loading"),
     switch: document.querySelector(".switch__track"),
@@ -12,7 +13,9 @@ const _elements = {
     deathsDescription: document.querySelector(".data-box__description"),
     vaccinated1: document.querySelector(".info__total--vaccinated-1"),
     vaccinated2: document.querySelector(".info__total--vaccinated-2"),
+
 }
+
 
 const _data = {
     id: "brasil=true",
@@ -119,21 +122,34 @@ _elements.selectSearchBox.addEventListener("keyup", (e) => {
     }
 });
 
+// const request = async (api, id) => {
+//     try {
+
+//         const url = api + id;
+
+//         const data = await fetch(url);
+//         const json = await data.json();
+
+//         return json;
+//     }
+
+//     catch (e) {
+//         console.log(e);
+//     }
+// }
+
 const request = async (api, id) => {
     try {
-
         const url = api + id;
-
         const data = await fetch(url);
         const json = await data.json();
-
+        console.log('Resposta da API:', json);// Adicione isso para depuração
         return json;
-    }
-
-    catch (e) {
+    } catch (e) {
         console.log(e);
     }
 }
+
 
 const loadData = async (id) => {
     _elements.loading.classList.remove("loading--hide");
@@ -143,10 +159,16 @@ const loadData = async (id) => {
     _data.vaccinated = await request(_api.vaccinated, id);
     _data.vaccinatedInfo = await request(_api.vaccinatedInfo, "");
 
+    console.log('Dados confirmados após carregamento:', _data.confirmed);
+    console.log('Dados de mortes após carregamento:', _data.deaths);
+    console.log('Dados vacinados após carregamento:', _data.vaccinated);
+    console.log('Informações de vacinação após carregamento:', _data.vaccinatedInfo);
+
     updateCards();
 
     _elements.loading.classList.add("loading--hide");
 }
+
 
 const createBasicChart = (element, config) => {
     const options = {
@@ -244,19 +266,46 @@ const createCharts = () => {
 }
 
 const updateCards = () => {
+    console.log('Dados confirmados:', _data.confirmed);
+    console.log('Dados de mortes:', _data.deaths);
+    console.log('Dados vacinados:', _data.vaccinated);
+    console.log('Informações de vacinação:', _data.vaccinatedInfo);
+
     const uf = _ufs[_data.id];
-    _elements.confirmed.innerText = _data.confirmed[_data.confirmed.length - 1]["total_de_casos"];
-    _elements.deaths.innerText = _data.deaths[_data.deaths.length - 1]["total_de_mortes"];
-    _elements.vaccinated1.innerText = _data.vaccinatedInfo.extras[uf].info["total-hoje-dose-1"];
-    _elements.vaccinated2.innerText = _data.vaccinatedInfo.extras[uf].info["total-hoje-dose-2"] + _data.vaccinatedInfo.extras[uf].info["total-hoje-dose-unica"];
 
+    // Atualizando dados confirmados
+    if (_data.confirmed.length > 0) {
+        const lastConfirmedData = _data.confirmed[_data.confirmed.length - 1];
+        _elements.confirmed.innerText = lastConfirmedData["total_de_casos"];
+    } else {
+        _elements.confirmed.innerText = 'Dados não disponíveis';
+    }
 
+    // Atualizando dados de mortes
+    if (_data.deaths.length > 0) {
+        const lastDeathsData = _data.deaths[_data.deaths.length - 1];
+        _elements.deaths.innerText = lastDeathsData["total_de_mortes"];
+    } else {
+        _elements.deaths.innerText = 'Dados não disponíveis';
+    }
+
+    // Atualizando informações de vacinação
+    if (_data.vaccinatedInfo && _data.vaccinatedInfo.extras && _data.vaccinatedInfo.extras[uf]) {
+        _elements.vaccinated1.innerText = _data.vaccinatedInfo.extras[uf].info["total-hoje-dose-1"] || 0;
+        _elements.vaccinated2.innerText = (_data.vaccinatedInfo.extras[uf].info["total-hoje-dose-2"] || 0) +
+            (_data.vaccinatedInfo.extras[uf].info["total-hoje-dose-unica"] || 0);
+    } else {
+        _elements.vaccinated1.innerText = 'Dados não disponíveis';
+        _elements.vaccinated2.innerText = 'Dados não disponíveis';
+    }
+
+    // Formatar números
     _elements.confirmed.innerText = Number(_elements.confirmed.innerText).toLocaleString();
     _elements.deaths.innerText = Number(_elements.deaths.innerText).toLocaleString();
     _elements.vaccinated1.innerText = Number(_elements.vaccinated1.innerText).toLocaleString();
     _elements.vaccinated2.innerText = Number(_elements.vaccinated2.innerText).toLocaleString();
-
 }
+
 
 const updateCharts = () => {
     // Exemplo de gráfico Donut para vacinação
@@ -276,4 +325,5 @@ const getDonutChartOptions = (value, name, colors) => {
 }
 
 loadData(_data.id);
+// import ApexCharts from 'apexcharts';
 createCharts();
